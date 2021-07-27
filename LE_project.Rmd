@@ -1,0 +1,462 @@
+---
+title: "Linear Regression Project - Life Expectancy"
+output: html_notebook
+---
+
+**Load in appropriate libraries**
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(modelr)
+```
+
+**Load in dataset** 
+
+Dataset is loaded in using the read.csv() function 
+
+```{r}
+LE_data <- read.csv('life_expectancy.csv')
+```
+
+**Inspect the dataframe**
+
+```{r}
+head(LE_data)
+```
+
+**Summary statistics by country** (BOXPLOTS OF THESE VARIABLES BY STATUS)
+
+Mean life expectancy by country and status. This showed that the life expectancy of a developed country is approximately 1.2 times greater than developing countries on average.
+
+```{r}
+
+mean_life_expectancies_by_country <- LE_data %>% group_by(Country) %>% summarise(mean_life_expectancy = mean(Life.expectancy)) %>% select(Country, mean_life_expectancy)
+
+head(mean_life_expectancies_by_country)
+
+mean_life_expectancies_by_status <- LE_data %>% group_by(Status) %>% summarise(mean_life_expectancy = mean(Life.expectancy, na.rm=TRUE)) %>% select(Status, mean_life_expectancy)
+
+mean_life_expectancies_by_status
+```
+
+Mean GDP by country and status. This showed that the GDP of a developed country is approximately 5 times greater than a developing country on average.
+
+```{r}
+mean_GDP_by_country <- LE_data %>% group_by(Country) %>% summarise(mean_GDP = mean(GDP)) %>% select(Country, mean_GDP)
+
+head(mean_GDP_by_country)
+
+mean_GDP_by_status <- LE_data %>% group_by(Status) %>% summarise(mean_GDP = mean(GDP, na.rm=TRUE)) %>% select(Status, mean_GDP)
+
+
+mean_GDP_by_status
+```
+
+Mean schooling by country and status. This showed that the average schooling in developed countries is approximately 5 years greater than in developing countries.
+
+```{r}
+mean_schooling_by_country <- LE_data %>% group_by(Country) %>% summarise(mean_schooling = mean(Schooling)) %>% select(Country, mean_schooling)
+
+head(mean_schooling_by_country)
+
+mean_schooling_by_status <- LE_data %>% group_by(Status) %>% summarise(mean_schooling = mean(Schooling, na.rm=TRUE)) %>% select(Status, mean_schooling)
+
+
+mean_schooling_by_status
+```
+Mean BMI by country and status.This shows that the mean BMI in developed countries is approximately 1.5 times greater than in developing countries on average. These values for average BMIs don't seem very accurate but we will make the assumption for this project that they are.
+
+```{r}
+mean_BMI_by_country <- LE_data %>% group_by(Country) %>% summarise(mean_BMI = mean(BMI)) %>% select(Country, mean_BMI)
+
+mean_BMI_by_country
+
+mean_BMI_by_status <- LE_data %>% group_by(Status) %>% summarise(mean_BMI = mean(BMI, na.rm=TRUE)) %>% select(Status, mean_BMI)
+
+
+mean_BMI_by_status
+```
+Mean adult deaths per 1000 by country and status (probability of dying between 15 and 60 years old). There are approximately double the amount of adult mortalities in developing countries than in developed country on average. This could be due to lower healthcare spending.
+
+```{r}
+mean_adult_deaths_by_country <- LE_data %>% group_by(Country) %>% summarise(mean_deaths = mean(Adult.Mortality)) %>% select(Country, mean_deaths)
+
+mean_adult_deaths_by_country
+
+mean_adult_deaths_by_status <- LE_data %>% group_by(Status) %>% summarise(mean_deaths = mean(Adult.Mortality, na.rm=TRUE)) %>% select(Status, mean_deaths)
+
+mean_adult_deaths_by_status
+
+```
+
+Mean infant mortalities per 1000 by country and status. It was found that there are approximately 24 times more infant deaths in developing countries than in developed countries.
+
+```{r}
+mean_infant_deaths_by_country <- LE_data %>% group_by(Country) %>% summarise(mean_deaths = mean(infant.deaths)) %>% select(Country, mean_deaths)
+
+mean_infant_deaths_by_country
+
+mean_infant_deaths_by_status <- LE_data %>% group_by(Status) %>% summarise(mean_deaths = mean(infant.deaths, na.rm=TRUE)) %>% select(Status, mean_deaths)
+
+mean_infant_deaths_by_status
+```
+
+Mean health expenditure by country and status. It was found that the expenditure on healthcare in developing countries is approximately 8.5 times higher in developed countries than developing countries on average.
+
+```{r}
+mean_expenditure_by_country <- LE_data %>% group_by(Country) %>% summarise(mean_expenditure = mean(percentage.expenditure)) %>% select(Country, mean_expenditure)
+
+mean_expenditure_by_country
+
+mean_expenditure_by_status <- LE_data %>% group_by(Status) %>% summarise(mean_expenditure = mean(percentage.expenditure, na.rm=TRUE)) %>% select(Status, mean_expenditure)
+
+mean_expenditure_by_status
+```
+Mean 'under five' deaths per 1000 by country and status. It was found that the are approximately 28 times the number of deaths of under fives per 1000 in developing countries than in developed countries on average.
+
+```{r}
+mean_under_five_by_country <- LE_data %>% group_by(Country) %>% summarise(mean_deaths = mean(under.five.deaths)) %>% select(Country, mean_deaths)
+
+mean_under_five_by_country
+
+mean_under_five_by_status <- LE_data %>% group_by(Status) %>% summarise(mean_deaths = mean(under.five.deaths, na.rm=TRUE)) %>% select(Status, mean_deaths)
+
+mean_under_five_by_status
+```
+Mean measles cases by country and status. It was found that there are approximately 5.5 times the amount of measles cases in developing countries than in developed countries. This could be due to the lower immunisation rates (MMR vaccine) caused by the lower healthcare spending in these countries, as previously discussed.
+
+```{r}
+mean_measles_by_country <- LE_data %>% group_by(Country) %>% summarise(mean_cases = mean(Measles)) %>% select(Country, mean_cases)
+
+mean_measles_by_country
+
+mean_measles_by_status <- LE_data %>% group_by(Status) %>% summarise(mean_cases = mean(Measles, na.rm=TRUE)) %>% select(Status, mean_cases)
+
+mean_measles_by_status
+```
+
+**Data Visualisation**
+
+Boxplot of life expectancies by countries status (developing or developed)
+
+```{r}
+life_expectancy_by_status <- LE_data %>% group_by(Status) %>% ggplot(aes(x=Status, y=Life.expectancy)) + geom_boxplot(aes(staplelwd = 4)) + labs(title='Boxplots of life expectancy by status')
+
+life_expectancy_by_status
+```
+
+Boxplot of GDP by status.
+
+```{r}
+GDP_by_status <- LE_data %>% group_by(Status) %>% ggplot(aes(x=Status, y=GDP)) + geom_boxplot(aes(staplelwd = 4)) + labs(title='Boxplots of GDP by status', y='GDP ($)')
+
+GDP_by_status
+```
+
+Boxplot of schooling age by status.
+
+```{r}
+schooling_by_status <- LE_data %>% group_by(Status) %>% ggplot(aes(x=Status, y=Schooling)) + geom_boxplot(aes(staplelwd = 4)) + labs(title='Boxplots of years of schooling by status', y='Years of schooling')
+
+schooling_by_status
+```
+
+Boxplot of healthcare expenditure by status.
+
+```{r}
+expenditure_by_status <- LE_data %>% group_by(Status) %>% ggplot(aes(x=Status, y=percentage.expenditure)) + geom_boxplot() + labs(title='Boxplots of healthcare expenditure by status', y='Healthcare Expenditure ($)')
+
+expenditure_by_status
+```
+Average values by country for scatter plots from 2000 to 2015 
+
+```{r}
+LE_average_data <- LE_data %>% group_by(Country) %>% summarise(LE_av = mean(Life.expectancy, na.rm=TRUE), GDP_av = mean(GDP, na.rm=TRUE), pop_av = mean(Population, na.rm=TRUE), adult_av = mean(Adult.Mortality, na.rm=TRUE), infant_av = mean(infant.deaths, na.rm=TRUE), exp_av = mean(percentage.expenditure, na.rm=TRUE)) 
+
+head(LE_average_data)
+
+```
+
+
+Scatter plot of healthcare expenditure versus life expectancy
+
+```{r}
+healthcare_scatter <- LE_average_data %>% ggplot(aes(x=exp_av, y=LE_av)) + geom_point() + labs(title='Scatter plot of healthcare expenditure versus life expectancy', x='Healthcare expenditure ($)', y='Life expectancy')
+
+healthcare_scatter
+```
+Scatter plot of GDP versus life expectancy.
+
+```{r}
+GDP_scatter <- LE_average_data %>% ggplot(aes(x=GDP_av, y=LE_av)) + geom_point() + labs(title='Scatter plot of GDP versus life expectancy', x='GDP ($)', y='Life expectancy')
+
+GDP_scatter
+```
+Scatter plot of population versus life expectancy
+
+```{r}
+pop_scatter <- LE_average_data %>% ggplot(aes(x=pop_av, y=LE_av)) + geom_point() + labs(title='Scatter plot of population versus life expectancy', x='Population', y='Life expectancy')
+
+pop_scatter
+```
+Scatter plot of adult mortalities versus life expectancy
+
+```{r}
+adult_scatter <- LE_average_data %>% ggplot(aes(x=adult_av, y=LE_av)) + geom_point() + labs(title='Scatter plot of adult mortality versus life expectancy', x='Adult Mortalities (/1000)', y='Life expectancy')
+
+adult_scatter
+```
+Scatter plot of infant mortalities versus life expectancy
+
+```{r}
+infant_scatter <- LE_average_data %>% ggplot(aes(x=infant_av, y=LE_av)) + geom_point() + labs(title='Scatter plot of infant mortality versus life expectancy', x='Infant Mortalities (/1000)', y='Life expectancy')
+
+infant_scatter
+```
+
+**Splitting into training and test sets**
+
+Splitting the datset into training and test sets, using a 60/40 (training/test) split
+
+```{r}
+set.seed(123)
+
+sample <- sample(c(TRUE, FALSE), nrow(LE_data), replace = T, prob = c(0.6,0.4))
+
+train <- LE_data[sample, ]
+
+test <- LE_data[!sample, ]
+
+```
+
+**Simple linear regression models**
+
+A variety of simple linear regression models were created using feature engineering techniques to find the best model based on the different features of the dataset.
+
+Model 1 - life expectancy based on healthcare expenditure
+
+```{r}
+train1 <- na.omit(train) # Get rid of NA values
+
+test1 <- na.omit(test) # Get rid of NA values
+
+model1 <- lm(Life.expectancy ~ percentage.expenditure, data=train1)
+
+summary(model1)$r.squared # Very small R^2 value showing the data is not a good fit
+
+train1$estimate <- predict(model1)
+
+train1$residuals <- residuals(model1)
+
+mse_model1_train <- train1 %>% add_predictions(model1) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_model1_test <- test1 %>% add_predictions(model1) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_model1_train
+
+mse_model1_test
+
+plot1 <- train1 %>% ggplot(aes(x=percentage.expenditure, y=Life.expectancy)) + geom_point() + geom_point(aes(y=estimate), color='blue') + geom_smooth(method='lm') + geom_smooth(se=FALSE, color='red')
+
+plot1 # The LOESS fit is not within the confidence intervals further showing the model is not a great fit
+
+```
+Model 2 - life expectancy based on GDP
+
+```{r}
+
+train2<- na.omit(train) # Get rid of NA values
+
+test2 <- na.omit(test) # Get rid of NA values
+
+model2 <- lm(Life.expectancy ~ GDP, data=train2)
+
+summary(model2)$r.squared # Very small R^2 value showing the data is not a good fit
+
+train2$estimate <- predict(model2)
+
+train2$residuals <- residuals(model2)
+
+mse_model2_train <- train2 %>% add_predictions(model2) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_model2_test <- test2 %>% add_predictions(model2) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_model2_train
+
+mse_model2_test
+
+plot2 <- train2 %>% ggplot(aes(x=GDP, y=Life.expectancy)) + geom_point() + geom_point(aes(y=estimate), color='blue') + geom_smooth(method='lm') + geom_smooth(se=FALSE, color='red')
+
+plot2 # The LOESS fit is not within the confidence intervals further showing the model is not a great fit
+```
+Model 3 - life expectancy by population
+
+```{r}
+
+train3<- na.omit(train) # Get rid of NA values
+
+test3 <- na.omit(test) # Get rid of NA values
+
+model3 <- lm(Life.expectancy ~ Population, data=train3)
+
+summary(model3)$r.squared # Very small R^2 value showing the data is not a good fit
+
+train3$estimate <- predict(model3)
+
+train3$residuals <- residuals(model3)
+
+mse_model3_train <- train3 %>% add_predictions(model3) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_model3_test <- test3 %>% add_predictions(model3) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_model3_train
+
+mse_model3_test
+
+plot3 <- train3 %>% ggplot(aes(x=Population, y=Life.expectancy)) + geom_point() + geom_point(aes(y=estimate), color='blue') + geom_smooth(method='lm') + geom_smooth(se=FALSE, color='red')
+
+plot3 # The LOESS fit is not within the confidence intervals further showing the model is a very poor fit
+```
+Model 4 - life expectancy by adult mortalities. This model has the best R^2 value, best LOESS fit and closest MSE values between the training and test sets implying that it is the best simple linear regression model.
+
+```{r}
+train4<- na.omit(train) # Get rid of NA values
+
+test4 <- na.omit(test) # Get rid of NA values
+
+model4 <- lm(Life.expectancy ~ Adult.Mortality, data=train4)
+
+summary(model4)$r.squared # Slightly better R^2 value but still not great. Could be improved by a multiple linear regression model.
+
+train4$estimate <- predict(model4)
+
+train4$residuals <- residuals(model4)
+
+mse_model4_train <- train4 %>% add_predictions(model4) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_model4_test <- test4 %>% add_predictions(model4) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_model4_train
+
+mse_model4_test
+
+plot4 <- train4 %>% ggplot(aes(x=Adult.Mortality, y=Life.expectancy)) + geom_point() + geom_point(aes(y=estimate), color='blue') + geom_smooth(method='lm') + geom_smooth(se=FALSE, color='red')
+
+plot4 # The LOESS trend is slightly closer to the confidence intervals showing the model is slightly better.
+```
+Model 5 - Life expectancy by infant mortalities
+
+```{r}
+train5<- na.omit(train) # Get rid of NA values
+
+test5 <- na.omit(test) # Get rid of NA values
+
+model5 <- lm(Life.expectancy ~ infant.deaths, data=train5)
+
+summary(model5)$r.squared # Very small R^2 value showing the data is not a good fit
+
+train5$estimate <- predict(model5)
+
+train5$residuals <- residuals(model5)
+
+mse_model5_train <- train5 %>% add_predictions(model5) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_model5_test <- test5 %>% add_predictions(model5) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_model5_train
+
+mse_model5_test
+
+plot5 <- train5 %>% ggplot(aes(x=infant.deaths, y=Life.expectancy)) + geom_point() + geom_point(aes(y=estimate), color='blue') + geom_smooth(method='lm') + geom_smooth(se=FALSE, color='red')
+
+plot5 # The LOESS fit is not within the confidence intervals further showing the model is not a great fit
+```
+**Multiple Linear Regression**
+
+To improve the accuracy of the model various multiple linear regression models were made. This was done using feature engineering techniques.
+
+Model 1 - Life expectancy by healthcare expenditure and GDP
+
+```{r}
+train6 <- na.omit(train) # Get rid of NA values
+
+test6 <- na.omit(test) # Get rid of NA values
+
+multi_model1 <- lm(Life.expectancy ~ percentage.expenditure + GDP, data=train6)
+
+summary(multi_model1)$r.squared
+
+mse_multi1_train <- train6 %>% add_predictions(multi_model1) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_multi1_test <- test6 %>% add_predictions(multi_model1) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_multi1_train
+
+mse_multi1_test
+```
+Model 2 - Life expectancy by healthcare expenditure and adult mortality
+
+```{r}
+train7 <- na.omit(train)
+
+test7 <- na.omit(test)
+
+multi_model2 <- lm(Life.expectancy ~ percentage.expenditure + Adult.Mortality, data=train7)
+
+summary(multi_model2)$r.squared
+
+mse_multi2_train <- train7 %>% add_predictions(multi_model2) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_multi2_test <- test7 %>% add_predictions(multi_model2) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_multi2_train
+
+mse_multi2_test
+```
+Model 3 - Life expectancy by healthcare expenditure, adult mortality and GDP
+
+```{r}
+train8 <- na.omit(train) # Get rid of NA values
+
+test8 <- na.omit(test) # Get rid of NA values
+
+multi_model3 <- lm(Life.expectancy ~ percentage.expenditure + Adult.Mortality + GDP, data=train8)
+
+summary(multi_model3)$r.squared
+
+mse_multi3_train <- train8 %>% add_predictions(multi_model3) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_multi3_test <- test8 %>% add_predictions(multi_model3) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_multi3_train
+
+mse_multi3_test
+```
+Model 4 - Life expectancy by healthcare expenditure, adult mortality , GDP, infant deaths and population. This model has the great R^2 value and the closest MSE values between the training and test sets of all models created. This implies that this is the best model. It desribes 55% of all variation of life expectancy. 
+
+```{r}
+train9 <- na.omit(train) # Get rid of NA values
+
+test9 <- na.omit(test) # Get rid of NA values
+
+multi_model4 <- lm(Life.expectancy ~ percentage.expenditure + Adult.Mortality + GDP + infant.deaths + Population, data=train9)
+
+summary(multi_model4)$r.squared
+
+mse_multi4_train <- train9 %>% add_predictions(multi_model4) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_multi4_test <- test9 %>% add_predictions(multi_model4) %>% summarise(MSE = mean((Life.expectancy - pred)^2))
+
+mse_multi4_train
+
+mse_multi4_test
+```
+**Conclusions**
+
+Summary statistics of many of the dataset's features were calculated and the differences between developed and developing countries was discussed, noting possible reasons for these discrepancies. The dataset was then further explored by visualising some of the features using boxplots, noting the differences between the median, and quartiles between developed and developing countries. The relationship between different variables were then visualised using scatter plots, so that possible features for the linear regression models could be identified.
+
+Various simple and multiple linear regression models for life expectancy were then created using the different features of the dataset. The accuracy of these models was then discussed quantitatively, using R^2 and MSE, and qualitatively, using LOESS. It was identified that the best simple linear regression model used Adult mortalities to explain life expectancy, giving an R^2 value of 0.48. Feature engineering skills were then used to find the best multiple linear regression model, based on various features of the dataset. It was found that the best model used healthcare expenditure, adult mortality , GDP, infant deaths and population to describe life expectancy, giving an R^2 value of 0.57 and the lowest difference in MSE values between the training and test sets. Therefore this model (multi_model4) should be used for any future predictions of life expectancy.
+
+Various anomalies within the dataset were discovered which presented mean values that would not be representative of true values, such as the GDP and BMI values in the dataset. For the purpose of this project an assumption that these values were reflective of the true values was made. However, if this project was to be used in real world applications a more accurate dataset should be used. 
