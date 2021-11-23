@@ -1,6 +1,6 @@
 ---
 title: "Linear Regression Project - Life Expectancy"
-output: html_notebook
+output: rmarkdown::github_document
 ---
 
 **Load in appropriate libraries**
